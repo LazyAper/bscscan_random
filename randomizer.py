@@ -2,16 +2,12 @@ import asyncio
 import config
 from bscscan import BscScan
 from datetime import datetime
-import pytz
-import random
 
-address = '0x3FD025ac173954778251699dacB2Ca126932841F'
-# 0x3FD025ac173954778251699dacB2Ca126932841F
 
 users = 0
 scans = []
 
-async def get_transactions(address='0x3FD025ac173954778251699dacB2Ca126932841F', val=1):
+async def get_transactions(address=config.address, val=1):
     global scans
     global users
     async with BscScan(config.API_KEY) as client:
@@ -43,4 +39,3 @@ if __name__ == "__main__":
     for i in scans:
         print(i)
     print('\nКол-во пользователей:', users)
-    print(scans[random.randint(0, users)])

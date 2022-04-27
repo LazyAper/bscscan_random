@@ -1,11 +1,9 @@
 #!venv/bin/python
 import logging
 import config
-import random
 import asyncio
 import randomizer as rz
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InputFile
 
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
@@ -33,13 +31,13 @@ async def cmd_dice(message: types.Message):
 
 @dp.message_handler(commands="users")
 async def cmd_users(message: types.Message):
-    await rz.get_transactions()
+    await rz.get_transactions(config.address)
     await message.answer(f'На текущий момент в конкурсе участвует {rz.users} человек')
 
 
 @dp.message_handler(commands="last")
 async def cmd_last(message: types.Message):
-    await rz.get_transactions()
+    await rz.get_transactions(config.address)
     text = ''
     user = rz.scans[-1]
     text += 'Последний пользователь🔚\n\n'
@@ -52,7 +50,7 @@ async def cmd_last(message: types.Message):
 @dp.message_handler(commands="check")  # Сделать поиск информации по кошельку
 async def cmd_check(message: types.Message):
     if message.get_args():
-        await rz.get_transactions()
+        await rz.get_transactions(config.address)
         text = ''
         found = False
         for i in rz.scans:
@@ -68,7 +66,7 @@ async def cmd_check(message: types.Message):
 
 @dp.message_handler(commands="users_list")
 async def cmd_users_list(message: types.Message):
-    await rz.get_transactions()
+    await rz.get_transactions(config.address)
     text = ''
     await message.answer('Подготовка файла...')
     for i in rz.scans:
@@ -87,7 +85,7 @@ async def cmd_users_list(message: types.Message):
 #     if message.get_args():
 #         await message.answer(message.get_args())
 #     else:
-#         await rz.get_transactions()
+#         await rz.get_transactions(config.address)
 #         text = ''
 #         user = rz.scans[random.randint(0, rz.users)]
 #         text += '🥇Победитель🥇\n\n'
