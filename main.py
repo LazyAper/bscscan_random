@@ -20,13 +20,28 @@ async def cmd_start(message: types.Message):
 
 @dp.message_handler(commands="dice")
 async def cmd_dice(message: types.Message):
-    num1 = await message.answer_dice()
-    num2 = await message.answer_dice()
-    await asyncio.sleep(5)
-    if num1.dice.value + num2.dice.value <= 9:
-        await message.answer(f'Первое число {(num1.dice.value + num2.dice.value)}')
-    else:
-        await message.answer('Сумма больше 9-ти, переброс кубика')
+    number = ''
+    summer = 10
+    cnt = [1, 2, 3]
+    for j in cnt:
+        while summer > 9:
+            num1 = await message.answer_dice()
+            num2 = await message.answer_dice()
+            await asyncio.sleep(5)
+            if num1.dice.value + num2.dice.value <= 9:
+                summer = num1.dice.value + num2.dice.value
+                if j == 1:
+                    await message.answer(f'Первая цифра {(num1.dice.value + num2.dice.value)}')
+                elif j == 2:
+                    await message.answer(f'Вторая цифра {(num1.dice.value + num2.dice.value)}')
+                elif j == 3:
+                    await message.answer(f'Третья цифра {(num1.dice.value + num2.dice.value)}')
+                number += str(summer)
+            else:
+                await message.answer('Сумма больше 9-ти, переброс кубика')
+        summer = 10
+    await message.answer('Итоговое число ' + number)
+
 
 
 @dp.message_handler(commands="users")
@@ -69,9 +84,11 @@ async def cmd_users_list(message: types.Message):
     await rz.get_transactions(config.address)
     text = ''
     await message.answer('Подготовка файла...')
+    cnt = 1
     for i in rz.scans:
         if i[0] not in text:
-            text += i[0] + '\n'
+            text += f'{str(cnt)}. {i[0]}\n'
+            cnt += 1
     with open("users.txt", "w") as f:
         f.write(text)
 
