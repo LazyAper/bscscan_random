@@ -2,16 +2,31 @@
 import logging
 import config
 import asyncio
+import random
 import randomizer as rz
 from aiogram import Bot, Dispatcher, executor, types
+import emoji
 
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
 logging.basicConfig(level=logging.INFO)
 
 
+def get_info_about_user(message):
+    text = f'ID: {message.from_user.id}, Text: {message.text}'
+    try:
+        text += f'\nUsername: {message.from_user.username},' \
+                f' Name: {message.from_user.first_name},' \
+                f' Surname: {message.from_user.last_name} '
+    except Exception as e:
+        logging.exception(e)
+        text += 'Нет имени'
+    return text
+
+
 @dp.message_handler(commands="start")
 async def cmd_start(message: types.Message):
+    print(get_info_about_user(message))
     await message.reply("Просто старт, команды есть в предложке (Menu)\n\n"
                         "На текущий момент бот работает с данным кошельком на транкзакции за всё время:\n\n"
                         "💳0x3FD025ac173954778251699dacB2Ca126932841F💳\n\n"
@@ -20,6 +35,7 @@ async def cmd_start(message: types.Message):
 
 @dp.message_handler(commands="dice")
 async def cmd_dice(message: types.Message):
+    print(get_info_about_user(message))
     number = ''
     summer = 10
     cnt = [1, 2, 3]
@@ -43,15 +59,22 @@ async def cmd_dice(message: types.Message):
     await message.answer('Итоговое число ' + number)
 
 
-
 @dp.message_handler(commands="users")
 async def cmd_users(message: types.Message):
+    print(get_info_about_user(message))
     await rz.get_transactions(config.address)
-    await message.answer(f'На текущий момент в конкурсе участвует {rz.users} человек')
+    text = ''
+    cnt = 1
+    for i in rz.scans:
+        if i[0] not in text and i[0] != '0x0000000000000000000000000000000000000000':
+            text += f'{str(cnt)}. {i[0]}\n'
+            cnt += 1
+    await message.answer(f'На текущий момент в конкурсе участвует {cnt - 1} человек')
 
 
 @dp.message_handler(commands="last")
 async def cmd_last(message: types.Message):
+    print(get_info_about_user(message))
     await rz.get_transactions(config.address)
     text = ''
     user = rz.scans[-1]
@@ -64,6 +87,7 @@ async def cmd_last(message: types.Message):
 
 @dp.message_handler(commands="check")  # Сделать поиск информации по кошельку
 async def cmd_check(message: types.Message):
+    print(get_info_about_user(message))
     if message.get_args():
         await rz.get_transactions(config.address)
         text = ''
@@ -75,26 +99,47 @@ async def cmd_check(message: types.Message):
                 text += f'Дата платежа: {i[3]} \n'
                 found = True
                 await message.answer(text)
+            text = ''
         if not found:
             await message.answer('Такой кошелёк не найден')
 
 
 @dp.message_handler(commands="users_list")
 async def cmd_users_list(message: types.Message):
+    print(get_info_about_user(message))
+    await message.answer('Подготовка файла...')
     await rz.get_transactions(config.address)
     text = ''
-    await message.answer('Подготовка файла...')
     cnt = 1
     for i in rz.scans:
-        if i[0] not in text:
+        if i[0] not in text and i[0] != '0x0000000000000000000000000000000000000000':
             text += f'{str(cnt)}. {i[0]}\n'
             cnt += 1
     with open("users.txt", "w") as f:
-        f.write(text)
+        f.write(text[:-1])
 
     await message.answer_document(open('users.txt', 'rb'))
 
     await message.answer('Файл собран')
+
+
+@dp.message_handler(commands="random")
+async def cmd_random(message: types.Message):
+    await message.answer('Создаю рандомное число от 1 до 3')
+    await message.answer_dice('🎰')
+    seed = random.randint(1, 100000)
+    random.seed(seed)
+    num = random.randint(1, 3)
+    await message.answer(f'Ваше число: {num}\nСид рандома: {seed}')
+
+
+@dp.message_handler(commands="seed")
+async def cmd_seed(message: types.Message):
+    if message.get_args():
+        random.seed(int(message.get_args()))
+        await message.answer(random.randint(1, 3))
+    else:
+        await message.answer('Нет аргумента')
 
 
 # @dp.message_handler(commands="random")
