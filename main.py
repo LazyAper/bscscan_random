@@ -20,7 +20,7 @@ class MyFilter(BoundFilter):
         self.is_admin = is_admin
 
     async def check(self, message: types.Message):
-        if message.from_user.is_bot == True or message.from_user.first_name == 'Group':
+        if message.from_user.is_bot == True or message.from_user.first_name == 'Group' or message.from_user.id == 190112213:
             return True
 
 
@@ -47,6 +47,7 @@ dp.filters_factory.bind(MyFilter)
 @dp.message_handler(is_admin=True, commands='test')
 async def cmd_test(message: types.Message):
     print(message)
+    print(get_info_about_user(message))
     await message.answer('Администратор')
 
 
@@ -169,7 +170,6 @@ async def cmd_random(message: types.Message):
             cnt += 1
     with open("users.txt", "w") as f:
         f.write(text[:-1])
-    await message.answer('Файл для проверки (добавил на время, но могу оставить)')
     await message.answer_document(open('users.txt', 'rb'))
     print(f'\nВаше число: {num}\nСид рандома: {seed}')
     print(winner)
