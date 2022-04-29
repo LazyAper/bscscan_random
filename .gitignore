@@ -1,5 +1,4 @@
 __pycache__/
 venv/
-config.py
 test.py
 users.txt
