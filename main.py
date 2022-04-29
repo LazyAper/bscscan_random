@@ -6,10 +6,22 @@ import random
 import randomizer as rz
 from datetime import datetime
 from aiogram import Bot, Dispatcher, executor, types
+from aiogram.dispatcher.filters import BoundFilter
 
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
 logging.basicConfig(level=logging.INFO)
+
+
+class MyFilter(BoundFilter):
+    key = 'is_admin'
+
+    def __init__(self, is_admin):
+        self.is_admin = is_admin
+
+    async def check(self, message: types.Message):
+        if message.from_user.is_bot == True or message.from_user.first_name == 'Group':
+            return True
 
 
 def get_info_about_user(message):
@@ -29,42 +41,31 @@ def to_fixed(number, digits=0):
     return f"{number:.{digits}f}"
 
 
-@dp.message_handler(commands="start")
+dp.filters_factory.bind(MyFilter)
+
+
+@dp.message_handler(is_admin=True, commands='test')
+async def cmd_test(message: types.Message):
+    print(message)
+    await message.answer('Администратор')
+
+
+@dp.message_handler(commands='test')
+async def cmd_test(message: types.Message):
+    print(message)
+    await message.answer('Пользователь')
+
+
+@dp.message_handler(is_admin=True, commands="start")
 async def cmd_start(message: types.Message):
     print(get_info_about_user(message))
     await message.reply("Просто старт, команды есть в предложке (Menu)\n\n"
-                        "На текущий момент бот работает с данным кошельком на транкзакции за всё время:\n\n"
+                        "На текущий момент бот работает с данным кошельком на транкзакции в сети BEP-20 за всё время:\n\n"
                         "💳0x3FD025ac173954778251699dacB2Ca126932841F💳\n\n"
                         "Позже будет возможен выбор нужного вам кошелька и даты")
 
 
-# @dp.message_handler(commands="dice")
-# async def cmd_dice(message: types.Message):
-#     print(get_info_about_user(message))
-#     number = ''
-#     summer = 10
-#     cnt = [1, 2, 3]
-#     for j in cnt:
-#         while summer > 9:
-#             num1 = await message.answer_dice()
-#             num2 = await message.answer_dice()
-#             await asyncio.sleep(5)
-#             if num1.dice.value + num2.dice.value <= 9:
-#                 summer = num1.dice.value + num2.dice.value
-#                 if j == 1:
-#                     await message.answer(f'Первая цифра {(num1.dice.value + num2.dice.value)}')
-#                 elif j == 2:
-#                     await message.answer(f'Вторая цифра {(num1.dice.value + num2.dice.value)}')
-#                 elif j == 3:
-#                     await message.answer(f'Третья цифра {(num1.dice.value + num2.dice.value)}')
-#                 number += str(summer)
-#             else:
-#                 await message.answer('Сумма больше 9-ти, переброс кубика')
-#         summer = 10
-#     await message.answer('Итоговое число ' + number)
-
-
-@dp.message_handler(commands="users")
+@dp.message_handler(is_admin=True, commands="users")
 async def cmd_users(message: types.Message):
     print(get_info_about_user(message))
     await rz.get_transactions(config.address)
@@ -77,7 +78,7 @@ async def cmd_users(message: types.Message):
     await message.answer(f'На текущий момент в конкурсе участвует {cnt - 1} человек')
 
 
-@dp.message_handler(commands="last")
+@dp.message_handler(is_admin=True, commands="last")
 async def cmd_last(message: types.Message):
     print(get_info_about_user(message))
     await rz.get_transactions(config.address)
@@ -90,7 +91,7 @@ async def cmd_last(message: types.Message):
     await message.answer(text)
 
 
-@dp.message_handler(commands="check")  # Сделать поиск информации по кошельку
+@dp.message_handler(is_admin=True, commands="check")  # Сделать поиск информации по кошельку
 async def cmd_check(message: types.Message):
     print(get_info_about_user(message))
     if message.get_args():
@@ -109,7 +110,7 @@ async def cmd_check(message: types.Message):
             await message.answer('Такой кошелёк не найден')
 
 
-@dp.message_handler(commands="users_list")
+@dp.message_handler(is_admin=True, commands="users_list")
 async def cmd_users_list(message: types.Message):
     print(get_info_about_user(message))
     await message.answer('Подготовка файла...')
@@ -127,7 +128,7 @@ async def cmd_users_list(message: types.Message):
     await message.answer('Файл собран')
 
 
-@dp.message_handler(commands="random")
+@dp.message_handler(is_admin=True, commands="random")
 async def cmd_random(message: types.Message):
     print(get_info_about_user(message))
     await message.answer('КРУТИМ БАРАБАН')
@@ -149,6 +150,7 @@ async def cmd_random(message: types.Message):
             users.append(i[0])
     num = random.randint(0, len(users) + 1)
     await message.answer(f'Ваше число: {num}\nСид рандома: {seed}')
+    await asyncio.sleep(1)
     await message.answer(f'Ищем {num}-го участника в базе данных')
     await asyncio.sleep(1)
     user = []
@@ -173,8 +175,7 @@ async def cmd_random(message: types.Message):
     print(winner)
 
 
-
-@dp.message_handler(commands="seed")
+@dp.message_handler(is_admin=True, commands="seed")
 async def cmd_seed(message: types.Message):
     print(get_info_about_user(message))
     if message.get_args():
@@ -187,21 +188,6 @@ async def cmd_seed(message: types.Message):
         await message.answer(str(random.randint(0, len(users))))
     else:
         await message.answer('Не задан адресс после команды /seed')
-
-
-# @dp.message_handler(commands="random")
-# async def cmd_random(message: types.Message):
-#     if message.get_args():
-#         await message.answer(message.get_args())
-#     else:
-#         await rz.get_transactions(config.address)
-#         text = ''
-#         user = rz.scans[random.randint(0, rz.users)]
-#         text += '🥇Победитель🥇\n\n'
-#         text += f'Адрес пользователя:\n\n💳{user[0]}💳 \n\n'
-#         text += f'Сумма платежа: {user[1]}$ \n'
-#         text += f'Дата платежа: {user[3]} \n'
-#         await message.answer(text)
 
 
 if __name__ == "__main__":
