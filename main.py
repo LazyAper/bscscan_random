@@ -20,7 +20,7 @@ class MyFilter(BoundFilter):
         self.is_admin = is_admin
 
     async def check(self, message: types.Message):
-        if message.from_user.is_bot == True or message.from_user.first_name == 'Group' or message.from_user.id == 190112213:
+        if message.from_user.is_bot == True or message.from_user.first_name == 'Group':
             return True
 
 
