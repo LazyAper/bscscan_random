@@ -44,12 +44,12 @@ def to_fixed(number, digits=0):
 dp.filters_factory.bind(MyFilter)
 
 
-# @dp.message_handler(is_admin=True, commands='test')
-# async def cmd_test(message: types.Message):
-#     print(message)
-#     await message.answer('Администратор')
-#
-#
+@dp.message_handler(is_admin=True, commands='test')
+async def cmd_test(message: types.Message):
+    print(message)
+    await message.answer('Администратор')
+
+
 # @dp.message_handler(commands='test')
 # async def cmd_test(message: types.Message):
 #     print(message)
