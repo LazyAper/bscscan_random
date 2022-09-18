@@ -12,7 +12,6 @@ bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot)
 logging.basicConfig(level=logging.INFO)
 
-
 class MyFilter(BoundFilter):
     key = 'is_admin'
 
@@ -22,7 +21,6 @@ class MyFilter(BoundFilter):
     async def check(self, message: types.Message):
         if message.from_user.is_bot == True or message.from_user.first_name == 'Group':
             return True
-
 
 def get_info_about_user(message):
     text = f'\n##### {datetime.now()} #####\n'
